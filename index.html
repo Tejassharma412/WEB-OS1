@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WebOS</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a2a6b">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --accent:#60cdff; --bg1:#0a2a6b; --bg2:#1e90ff; --bg3:#7b2ff7;
+  --glass:rgba(32,34,44,.82); --text:#fff; --hover:rgba(255,255,255,.14);
+  --win:#fff; --wintext:#1b1b1b; --title:#f3f3f3;
+}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{height:100%;overflow:hidden;font-family:"Segoe UI",system-ui,Roboto,sans-serif;color:var(--text)}
+#desktop{
+  position:fixed;inset:0;
+  background:radial-gradient(circle at 30% 20%,var(--bg2),transparent 55%),
+             radial-gradient(circle at 75% 80%,var(--bg3),transparent 50%),var(--bg1);
+}
+#icons{position:absolute;top:10px;left:14px;bottom:60px;display:grid;grid-auto-flow:column;grid-template-rows:repeat(auto-fill,76px);gap:6px 10px;align-content:start}
+.icon{width:72px;text-align:center;font-size:12px;padding:6px 2px;border-radius:6px}
+.icon:active{background:var(--hover)}
+.icon span{display:block;font-size:30px}
+
+/* Windows */
+.win{
+  position:absolute;width:min(55vw,480px);height:min(68vh,300px);background:var(--win);color:var(--wintext);
+  border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.45);display:flex;flex-direction:column;overflow:hidden;
+}
+.win.max{inset:0 0 48px 0!important;width:auto!important;height:auto!important;border-radius:0}
+.title{border-bottom:3px solid var(--accent);height:40px;background:var(--title);display:flex;align-items:center;padding-left:12px;touch-action:none;font-size:13px;gap:8px}
+.title b{flex:1;font-weight:500}
+.title button{width:44px;height:40px;border:0;background:none;font-size:15px;color:inherit}
+.title button:active{background:rgba(0,0,0,.1)}
+.title .x:active{background:#c42b1c;color:#fff}
+.body{flex:1;overflow:auto;user-select:text}
+.body textarea{width:100%;height:100%;border:0;padding:12px;font:15px Consolas,monospace;resize:none;outline:none;user-select:text}
+.calc{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:8px;height:100%}
+.calc output{grid-column:1/-1;font-size:28px;text-align:right;padding:6px 8px;background:#f3f3f3;border-radius:6px}
+.calc button{border:0;border-radius:6px;background:#eaeaea;font-size:18px}
+.calc button:active{background:#d0d0d0}
+.calc .op{background:#dbe9f7}
+
+.sw{display:flex;gap:8px;margin:8px 0 16px;flex-wrap:wrap}
+.sw button{width:44px;height:44px;border-radius:8px;border:2px solid #ccc}
+.sw button:active{border-color:#000}
+.fx{display:flex;flex-direction:column;height:100%}
+.fx .bar{display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f3f3f3;font-size:13px}
+.fx .bar button{border:0;border-radius:6px;padding:6px 10px;background:#e2e2e2}
+.fx .list{flex:1;overflow:auto}
+.fx .row{padding:12px 14px;border-bottom:1px solid #eee;font-size:14px}
+.fx .row:active{background:#dbe9f7}
+.pad{padding:16px;text-align:center}
+.pad button{border:0;border-radius:6px;padding:10px 16px;background:#dbe9f7;font-size:14px;margin:0 4px}
+.pad button:active{background:#b9d3ee}
+.br{display:flex;flex-direction:column;height:100%}
+.br .top{display:flex;gap:4px;padding:6px;background:#f3f3f3}
+.br input{flex:1;border:1px solid #ccc;border-radius:6px;padding:6px 8px;font-size:14px;user-select:text;min-width:0}
+.br .top button{border:0;border-radius:6px;padding:0 12px;background:#dbe9f7}
+.br iframe{flex:1;border:0;width:100%;background:#fff}
+.br small{padding:4px 8px;color:#666;font-size:11px}
+
+.pt{display:flex;flex-direction:column;height:100%}
+.pt .tools{display:flex;gap:6px;padding:6px;background:#f3f3f3;align-items:center}
+.pt .tools button{width:30px;height:30px;border-radius:50%;border:2px solid #ccc}
+.pt .tools .cl{width:auto;border-radius:6px;padding:0 10px;background:#e2e2e2}
+.pt .tools .sp{width:auto;border-radius:6px;padding:0 10px;background:#e2e2e2}
+.fx .bar{flex-wrap:wrap}
+.pt canvas{flex:1;width:100%;min-height:0}
+.cal .ch{display:flex;justify-content:space-between;align-items:center;padding:8px 12px}
+.cal .ch button{border:0;background:#eee;border-radius:6px;width:40px;height:34px;font-size:18px}
+.cg{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;padding:0 8px 8px;gap:2px;font-size:13px}
+.cg div{padding:7px 0;border-radius:6px}
+.cg .td{background:#0067c0;color:#fff}
+.cg .dn{color:#777;font-size:11px}
+.br .hp{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:10px;text-align:center}
+.br .hp[hidden],.br iframe[hidden]{display:none}
+.cd{display:flex;flex-direction:column;height:100%}
+.cd .tools{display:flex;gap:5px;padding:6px;background:#f3f3f3;flex-wrap:wrap}
+.cd .tools button{border:0;border-radius:6px;padding:7px 10px;background:#dbe9f7;font-size:13px;min-width:32px}
+.cd textarea{flex:1;width:100%;border:0;padding:10px;font:13px Consolas,monospace;resize:none;outline:none;user-select:text;white-space:pre;overflow:auto}
+.cd iframe{flex:1;border:0;width:100%;background:#fff}
+.cd [hidden]{display:none}
+.br select{border:1px solid #ccc;border-radius:6px;background:#fff;max-width:92px;font-size:12px}
+.br .logo{font-size:32px;font-weight:600}
+.br .hp input{width:80%;flex:none;border-radius:20px;padding:9px 14px}
+.br .hp button{border:0;border-radius:6px;padding:9px 12px;background:#dbe9f7;margin:0 3px;font-size:13px}
+#menu{position:fixed;z-index:960;display:none;min-width:170px;padding:4px;border-radius:8px;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 8px 30px rgba(0,0,0,.5)}
+#menu button{display:block;width:100%;text-align:left;border:0;background:none;color:var(--text);padding:12px 14px;font-size:14px;border-radius:6px}
+#menu button:active{background:var(--hover)}
+#lock{position:fixed;inset:0;z-index:3000;display:flex;align-items:center;justify-content:center;gap:8vw;flex-wrap:wrap;background:radial-gradient(circle at 30% 20%,var(--bg2),transparent 55%),var(--bg1)}
+#lt{font-size:56px;font-weight:300}
+#ld{font-size:16px}
+#dots{height:30px;letter-spacing:6px;text-align:center;font-size:14px}
+.keys{display:grid;grid-template-columns:repeat(3,56px);gap:8px}
+.keys button{height:44px;border:0;border-radius:22px;background:rgba(255,255,255,.18);color:#fff;font-size:18px}
+.keys button:active{background:rgba(255,255,255,.4)}
+#lock small{display:block;text-align:center;margin-top:8px;opacity:.7}
+
+/* Taskbar */
+#taskbar{
+  position:fixed;left:0;right:0;bottom:0;height:calc(48px + env(safe-area-inset-bottom,0px));
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  display:flex;align-items:center;justify-content:flex-start;gap:4px;padding-left:8px;z-index:900;
+}
+.tb{height:40px;min-width:44px;padding:0 10px;border:0;border-radius:6px;background:none;color:var(--text);font-size:20px;display:flex;align-items:center;gap:6px;position:relative}
+.tb:active{background:var(--hover)}
+.tb.on::after{content:"";position:absolute;bottom:2px;left:50%;width:14px;height:3px;margin-left:-7px;border-radius:2px;background:var(--accent)}
+#clock{position:absolute;right:10px;font-size:12px;text-align:right;line-height:1.3}
+
+/* Start menu */
+#start{
+  position:fixed;left:12px;bottom:calc(58px + env(safe-area-inset-bottom,0px));width:min(46vw,400px);
+  transform:translateY(20px);opacity:0;pointer-events:none;transition:.18s;
+  background:var(--glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-radius:12px;padding:16px;z-index:950;box-shadow:0 10px 40px rgba(0,0,0,.5);
+}
+#start.open{transform:translateY(0);opacity:1;pointer-events:auto}
+#start h3{font-size:13px;font-weight:600;margin-bottom:10px}
+.apps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;max-height:calc(100vh - 190px);overflow:auto}
+.app{border:0;background:none;color:var(--text);font-size:11px;padding:8px 2px;border-radius:8px}
+.app:active{background:var(--hover)}
+.app span{display:block;font-size:28px;margin-bottom:2px}
+.foot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,.15);padding-top:12px;font-size:13px}
+.foot button{border:0;border-radius:6px;padding:9px 12px;background:var(--hover);color:var(--text);font-size:13px}
+.foot button:active{background:rgba(255,255,255,.28)}
+@media (prefers-reduced-motion:reduce){#start{transition:none}}
+</style>
+</head>
+<body>
+<div id="desktop">
+  <div id="icons"></div>
+</div>
+
+<div id="start">
+  <h3>Pinned</h3>
+  <div class="apps" id="appgrid"></div>
+  <div class="foot">
+    <button id="lockBtn">🔒 Lock</button>
+    <button id="exit">Exit to Funtouch OS</button>
+  </div>
+</div>
+
+<div id="taskbar">
+  <button class="tb" id="startBtn" aria-label="Start">⊞</button>
+  <div id="tasks" style="display:flex;gap:4px"></div>
+  <div id="clock"></div>
+</div>
+
+<div id="menu"><button data-m="wall">Next wallpaper</button><button data-m="set">Settings</button><button data-m="lock">Lock</button></div>
+<div id="lock"><div><div id="lt"></div><div id="ld"></div></div><div><div id="dots"></div><div class="keys"><button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><span></span><button data-k="0">0</button><button data-k="del">⌫</button></div><small>Default PIN: 1234</small></div></div>
+
+<script>
+const apps = {
+  notepad: { title:"Notepad", icon:"📝",
+    render:()=>`<textarea placeholder="Start typing..."></textarea>` },
+  calc: { title:"Calculator", icon:"🧮", render:()=>{
+    const k=["7","8","9","÷","4","5","6","×","1","2","3","−","0",".","C","+"];
+    return `<div class="calc"><output>0</output>${k.map(x=>`<button class="${"÷×−+".includes(x)?"op":""}">${x}</button>`).join("")}<button class="op" style="grid-column:1/-1">=</button></div>`;
+  }, init(el){
+    const out=el.querySelector("output"); let expr="";
+    el.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+      const v=b.textContent;
+      if(v==="C"){expr="";out.textContent="0";return}
+      if(v==="="){
+        try{out.textContent=String(Function('"use strict";return ('+expr.replace(/÷/g,"/").replace(/×/g,"*").replace(/−/g,"-")+')')())}
+        catch{out.textContent="Error"} expr=out.textContent==="Error"?"":out.textContent; return}
+      expr+=v; out.textContent=expr;
+    });
+  }},
+  about: { title:"This phone", icon:"💻",
+    render:()=>`<div style="padding:16px;line-height:1.6"><h2>WebOS 0.1</h2><p>Running on ${navigator.platform||"your phone"}.</p><p>Screen: ${screen.width}×${screen.height}</p></div>` }
+};
+
+function openExt(u){if(window.Android&&Android.openUrl)Android.openUrl(u);else window.open(u,"_blank")}
+const walls=[["#0a2a6b","#1e90ff","#7b2ff7"],["#0b3d2e","#2ecc71","#145a8a"],["#3b0a45","#ff5e62","#ff9966"],["#111111","#444444","#222222"]];
+const accents=["#60cdff","#ff6b6b","#ffd166","#06d6a0","#c77dff","#ffffff"];
+function applyTheme(t){
+  const root=document.documentElement.style, w=walls[t.w];
+  root.setProperty("--bg1",w[0]);root.setProperty("--bg2",w[1]);root.setProperty("--bg3",w[2]);
+  root.setProperty("--accent",accents[t.a]);
+  try{localStorage.setItem("webos-theme",JSON.stringify(t))}catch(e){}
+}
+let theme={w:0,a:0};
+try{theme=JSON.parse(localStorage.getItem("webos-theme"))||theme}catch(e){}
+applyTheme(theme);
+
+apps.settings={title:"Settings",icon:"⚙️",
+  render:()=>`<div style="padding:14px"><b>Wallpaper</b><div class="sw">${walls.map((w,i)=>`<button data-w="${i}" style="background:linear-gradient(135deg,${w[0]},${w[1]})"></button>`).join("")}</div><b>Accent color</b><div class="sw">${accents.map((c,i)=>`<button data-a="${i}" style="background:${c}"></button>`).join("")}</div><b>Security</b><div style="margin-top:8px"><button class="cp" style="border:0;border-radius:6px;padding:10px 14px;background:#dbe9f7;margin-right:8px">Change PIN</button><button class="lk" style="border:0;border-radius:6px;padding:10px 14px;background:#dbe9f7">Lock now</button></div></div>`,
+  init(el){
+    el.querySelector(".cp").onclick=changePin; el.querySelector(".lk").onclick=lockNow;
+    el.querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>{theme.w=+b.dataset.w;applyTheme(theme)});
+    el.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>{theme.a=+b.dataset.a;applyTheme(theme)});
+  }};
+
+const fs={
+  "C: Local Disk":{
+    Documents:{"notes.txt":"Ideas for WebOS:\n- file explorer\n- browser\n- more apps","todo.txt":"1. Build launcher\n2. Test on phone"},
+    Pictures:{"beach.png":"","city.png":""},
+    Music:{"song1.mp3":"","song2.mp3":""},
+    Windows:{"system.txt":"WebOS 0.1"},
+    "readme.txt":"Welcome to WebOS. Tap a drive or folder to open it, or a .txt file to read it."
+  },
+  "D: Data":{
+    Games:{"free-fire-notes.txt":"Daily tasks and codes go here."},
+    Downloads:{},
+    Projects:{"site-ideas.txt":"Portfolio site\nWeb app\nWebOS v2"}
+  }
+};
+// ----- Drives: C: (system, read-only) and D: (your files, stored on this device) -----
+const openDB=()=>new Promise((res,rej)=>{const q=indexedDB.open("webos-fs",1);q.onupgradeneeded=()=>q.result.createObjectStore("f",{keyPath:"path"});q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)});
+let dbp=null;const getDB=()=>dbp||(dbp=openDB());
+const tx=async(mode,fn)=>{const d=await getDB();return new Promise((res,rej)=>{const t=d.transaction("f",mode),r=fn(t.objectStore("f"));t.oncomplete=()=>res(r&&r.result);t.onerror=()=>rej(t.error)})};
+const fput=rec=>tx("readwrite",st=>st.put(rec));
+const fdel=path=>tx("readwrite",st=>st.delete(path));
+const fall=()=>tx("readonly",st=>st.getAll());
+const parentOf=pa=>{const i=pa.lastIndexOf("/");return i<0?"":pa.slice(0,i)};
+const sysTree={Windows:{System32:{"kernel.sys":1,"explorer.exe":1,"webos.dll":1},Fonts:{}},"Program Files":{},Users:{You:{Desktop:{},Documents:{}}}};
+(async()=>{try{const have=(await fall()).map(r=>r.path);
+  for(const d of ["Downloads","Documents","Pictures","Music","Videos"])if(!have.includes("D:/"+d))await fput({path:"D:/"+d,dir:true})}catch(e){}})();
+
+apps.files={title:"Files",icon:"📁",
+  render:()=>`<div class="fx"><div class="bar"><button class="up">⬆</button><span class="path" style="flex:1;min-width:60px"></span><button class="imp">＋ Import</button><button class="nf">New folder</button><button class="dl">⬇ URL</button></div><div class="list"></div><input class="pick" type="file" multiple hidden></div>`,
+  init(el){
+    let path="";
+    const list=el.querySelector(".list"),bar=el.querySelector(".path"),pick=el.querySelector(".pick"),box=el.querySelector(".fx");
+    box.style.position="relative";
+    const onD=()=>path.startsWith("D:");
+    const listC=()=>{
+      if(path==="C:/Program Files")return installed.map(id=>({n:apps[id].title+".exe",p:path+"/"+id,dir:false,sys:true}));
+      let node=sysTree;for(const k of path.split("/").slice(1))node=node&&node[k];
+      return Object.entries(node||{}).map(([k,v])=>({n:k,p:path+"/"+k,dir:typeof v==="object",sys:true}));
+    };
+    const preview=h=>{
+      const o=document.createElement("div");
+      o.style.cssText="position:absolute;inset:0;background:#000;display:flex;align-items:center;justify-content:center;z-index:5";
+      o.innerHTML=h+'<button style="position:absolute;top:6px;right:6px;border:0;border-radius:6px;padding:8px 12px">Close</button>';
+      o.querySelector("button").onclick=()=>o.remove();box.appendChild(o);
+    };
+    const open=async rec=>{
+      const mime=rec.mime||"",name=rec.path.split("/").pop(),url=URL.createObjectURL(rec.blob);
+      if(mime.startsWith("text/")||/\.(txt|md|json|csv|html|css|js)$/i.test(name)){const t=await rec.blob.text();openApp("notepad");wins.notepad.win.querySelector("textarea").value=t}
+      else if(mime.startsWith("image/"))preview(`<img src="${url}" style="max-width:100%;max-height:100%">`);
+      else if(mime.startsWith("audio/"))preview(`<audio controls autoplay src="${url}" style="width:90%"></audio>`);
+      else if(mime.startsWith("video/"))preview(`<video controls autoplay src="${url}" style="max-width:100%;max-height:100%"></video>`);
+      else alert("No viewer for this file type yet.");
+    };
+    const draw=async()=>{
+      bar.textContent=path||"This PC";list.innerHTML="";
+      let items=[];
+      try{
+        if(!path)items=[{n:"Local Disk (C:)",p:"C:",dir:true,drive:true},{n:"Data (D:)",p:"D:",dir:true,drive:true}];
+        else if(path.startsWith("C:"))items=listC();
+        else items=(await fall()).filter(r=>parentOf(r.path)===path).map(r=>({n:r.path.split("/").pop(),p:r.path,dir:r.dir,rec:r}));
+      }catch(e){list.textContent="Storage is not available here.";return}
+      items.sort((a,b)=>(b.dir-a.dir)||a.n.localeCompare(b.n));
+      if(!items.length){list.innerHTML='<div class="row" style="color:#777">This folder is empty.</div>'}
+      items.forEach(it=>{
+        const d=document.createElement("div");d.className="row";d.style.cssText="display:flex;align-items:center;gap:8px";
+        const m=(it.rec&&it.rec.mime)||"";
+        const ic=it.drive?"💽":it.dir?"📁":m.startsWith("image/")?"🖼️":m.startsWith("audio/")?"🎵":m.startsWith("video/")?"🎬":m.startsWith("text/")?"📄":"📦";
+        const sp=document.createElement("span");sp.style.flex="1";sp.textContent=ic+" "+it.n;d.appendChild(sp);
+        if(it.rec&&!it.dir){const z=document.createElement("small");z.style.color="#777";z.textContent=Math.max(1,Math.round(it.rec.size/1024))+" KB";d.appendChild(z)}
+        if(it.rec){const x=document.createElement("button");x.textContent="✕";x.style.cssText="border:0;background:none;font-size:16px;padding:4px 8px";
+          x.onclick=async e=>{e.stopPropagation();if(confirm("Delete "+it.n+"?")){
+            const all=await fall();for(const r of all)if(r.path===it.p||r.path.startsWith(it.p+"/"))await fdel(r.path);draw()}};d.appendChild(x)}
+        d.onclick=()=>{
+          if(it.dir){path=it.p;draw()}
+          else if(it.rec)open(it.rec);
+          else alert("System file. C: is read-only.");
+        };
+        list.appendChild(d);
+      });
+    };
+    el.querySelector(".up").onclick=()=>{path=path.includes("/")?parentOf(path):"";draw()};
+    const needD=()=>{if(!onD()){alert("Open a folder on D: first. C: is the system drive and is read-only.");return false}return true};
+    el.querySelector(".imp").onclick=()=>{if(needD())pick.click()};
+    pick.onchange=async()=>{
+      for(const f of pick.files)await fput({path:path+"/"+f.name,dir:false,mime:f.type,size:f.size,blob:f});
+      pick.value="";draw();
+    };
+    el.querySelector(".nf").onclick=async()=>{
+      if(!needD())return;const n=prompt("Folder name");
+      if(n&&!/[\/\\]/.test(n)){await fput({path:path+"/"+n,dir:true});draw()}
+    };
+    el.querySelector(".dl").onclick=async()=>{
+      if(!needD())return;const u=prompt("Paste a direct file link");if(!u)return;
+      try{
+        const res=await fetch(u);if(!res.ok)throw 0;const b=await res.blob();
+        const name=decodeURIComponent(u.split("?")[0].split("/").pop())||"download";
+        await fput({path:"D:/Downloads/"+name,dir:false,mime:b.type,size:b.size,blob:b});
+        alert("Saved to D:/Downloads");path="D:/Downloads";draw();
+      }catch(e){alert("This site does not allow downloads from inside WebOS. Download the file in your phone browser, then use Import.")}
+    };
+    draw();
+  }};
+
+apps.clock={title:"Clock",icon:"⏱️",
+  render:()=>`<div class="pad"><div class="now" style="font-size:44px"></div><div class="st" style="font-size:28px;margin:12px 0">00:00.0</div><button class="go">Start</button><button class="rs">Reset</button></div>`,
+  init(el){
+    const now=el.querySelector(".now"), st=el.querySelector(".st"), go=el.querySelector(".go");
+    let t0=0, acc=0, run=false;
+    const fmt=ms=>{const s=ms/1000;return String(Math.floor(s/60)).padStart(2,"0")+":"+(s%60).toFixed(1).padStart(4,"0")};
+    const id=setInterval(()=>{
+      if(!el.isConnected){clearInterval(id);return}
+      now.textContent=new Date().toLocaleTimeString();
+      if(run)st.textContent=fmt(acc+Date.now()-t0);
+    },100);
+    go.onclick=()=>{ if(run){acc+=Date.now()-t0;run=false;go.textContent="Start"} else {t0=Date.now();run=true;go.textContent="Stop"} };
+    el.querySelector(".rs").onclick=()=>{acc=0;run=false;go.textContent="Start";st.textContent="00:00.0"};
+  }};
+
+apps.browser={title:"Browser",icon:"🌐",
+  render:()=>`<div class="br"><div class="top"><button class="home">🏠</button><input class="url" placeholder="Search or type address"><select class="eng"><option value="w">Wikipedia</option><option value="b">Bing</option></select><button class="go">Go</button><button class="gg" title="Search on Google in a new tab">G↗</button><button class="ext" title="Open this page in a new tab">↗</button></div><div class="hp"><div class="logo">Search</div><input class="q" placeholder="Search the web"><div><button class="ws">Search</button></div><small>Results open inside WebOS. If a page shows blank, that site blocks being embedded: try the other search engine in the list at the top. Google does not allow being shown inside apps, so tap G↗ to search on Google in a new tab.</small></div><iframe hidden></iframe></div>`,
+  init(el){
+    const f=el.querySelector("iframe"),hp=el.querySelector(".hp"),u=el.querySelector(".url"),q=el.querySelector(".q"),eng=el.querySelector(".eng"),enc=encodeURIComponent;
+    const engines={w:"https://en.m.wikipedia.org/w/index.php?search=",b:"https://www.bing.com/search?q="};
+    const isUrl=v=>/^https?:\/\//.test(v)||(v.includes(".")&&!v.includes(" "));
+    let last="";
+    const show=v=>{
+      v=v.trim();if(!v)return;
+      let l;
+      if(isUrl(v))l=/^https?:\/\//.test(v)?v:"https://"+v;
+      else{last=v;l=engines[eng.value]+enc(v)}
+      u.value=l;f.src=l;f.hidden=false;hp.hidden=true;
+    };
+    el.querySelector(".go").onclick=()=>show(u.value);
+    u.onkeydown=e=>{if(e.key==="Enter")show(u.value)};
+    q.onkeydown=e=>{if(e.key==="Enter")show(q.value)};
+    el.querySelector(".ws").onclick=()=>show(q.value);
+    eng.onchange=()=>{if(last)show(last)};
+    el.querySelector(".gg").onclick=()=>{const t=(last||q.value||u.value).trim();openExt("https://www.google.com/search?q="+enc(t),"_blank")};
+    el.querySelector(".ext").onclick=()=>{if(!f.hidden&&f.src)openExt(f.src,"_blank")};
+    el.querySelector(".home").onclick=()=>{f.hidden=true;hp.hidden=false;u.value=""};
+  }};
+
+const core=["notepad","calc","about","files","browser","clock","settings","store"];
+const optional={spotify:"Stream music with Spotify",paint:"Draw with your finger",music:"Play songs from your phone",calendar:"Month view with today marked",spotify:"Music and playlists",office:"Word, Excel and PowerPoint online",code:"Write HTML, CSS and JS with live preview"};
+let installed=core.slice();
+try{const sv=JSON.parse(localStorage.getItem("webos-apps"));if(sv)installed=sv}catch(e){}
+try{if(!localStorage.getItem("webos-spotify-seen")){if(!installed.includes("spotify"))installed.push("spotify");localStorage.setItem("webos-spotify-seen","1");localStorage.setItem("webos-apps",JSON.stringify(installed))}}catch(e){}
+function toggleInstall(id){
+  if(installed.includes(id)){installed=installed.filter(x=>x!==id);if(wins[id])wins[id].win.querySelector(".x").click()}
+  else installed.push(id);
+  try{localStorage.setItem("webos-apps",JSON.stringify(installed))}catch(e){}
+  renderLaunchers();
+}
+function renderLaunchers(){
+  const ids=Object.keys(apps).filter(k=>installed.includes(k));
+  document.getElementById("icons").innerHTML=ids.map(k=>`<div class="icon" data-app="${k}"><span>${apps[k].icon}</span>${apps[k].title}</div>`).join("");
+  document.getElementById("appgrid").innerHTML=ids.map(k=>`<button class="app" data-app="${k}"><span>${apps[k].icon}</span>${apps[k].title}</button>`).join("");
+  document.querySelectorAll("[data-app]").forEach(el=>el.onclick=()=>openApp(el.dataset.app));
+}
+
+const real=[["WhatsApp","💬","com.whatsapp"],["Instagram","📸","com.instagram.android"],["YouTube","▶️","com.google.android.youtube"],["Telegram","✈️","org.telegram.messenger"],["Netflix","🎬","com.netflix.mediaclient"],["Chrome","🌍","com.android.chrome"],["Minecraft","⛏️","com.mojang.minecraftpe"],["Subway Surfers","🏃","com.kiloo.subwaysurf"],["Free Fire","🔥","com.dts.freefireth"],["Free Fire MAX","🔥","com.dts.freefiremax"],["PUBG Mobile","🎯","com.tencent.ig"],["BGMI","🎯","com.pubg.imobile"],["Call of Duty Mobile","🔫","com.activision.callofduty.shooter"],["Clash of Clans","🏰","com.supercell.clashofclans"],["Roblox","🧱","com.roblox.client"],["Among Us","🚀","com.innersloth.spacemafia"],["Ludo King","🎲","com.ludo.king"],["Snapchat","👻","com.snapchat.android"],["Candy Crush Saga","🍬","com.king.candycrushsaga"],["Spotify (Android app)","🎧","com.spotify.music"],["Microsoft Word","📘","com.microsoft.office.word"],["Microsoft Excel","📗","com.microsoft.office.excel"],["Microsoft PowerPoint","📙","com.microsoft.office.powerpoint"],["Microsoft 365 (Android app)","📄","com.microsoft.office.officehubrow"]];
+const esc=x=>x.replace(/[&<>"]/g,c=>"&#"+c.charCodeAt(0)+";");
+const apks=[["F-Droid","🧩","Free and open-source app store","https://f-droid.org/F-Droid.apk"],["Telegram","✈️","Messaging","https://telegram.org/dl/android/apk"]];
+function toast(m){
+  const d=document.createElement("div");
+  d.style.cssText="position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:4000;background:#222;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;max-width:80vw;text-align:center";
+  d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),3500);
+}
+window.onApkStatus=m=>toast(m);
+function getApk(u){
+  if(!/^https:\/\//.test(u)){toast("Only https links are allowed");return}
+  if(window.Android&&Android.installApk)Android.installApk(u);
+  else openExt(u);
+}
+apps.store={title:"Store",icon:"🛍️",
+  render:()=>`<div class="fx"><div class="bar"><input class="sq" placeholder="Search apps and games" style="flex:1;border:1px solid #ccc;border-radius:16px;padding:8px 12px;font-size:14px;user-select:text;min-width:0"></div><div class="list"></div></div>`,
+  init(el){
+    const q=el.querySelector(".sq"),list=el.querySelector(".list");
+    const row=(icon,name,sub,label,color,fn)=>{
+      const d=document.createElement("div");d.className="row";d.style.cssText="display:flex;align-items:center;gap:10px";
+      d.innerHTML=`<span style="font-size:28px">${icon}</span><span style="flex:1"><b>${name}</b><br><small>${sub}</small></span><button style="border:0;border-radius:6px;padding:8px 12px;background:${color};color:#fff">${label}</button>`;
+      d.querySelector("button").onclick=fn;list.appendChild(d);
+    };
+    const draw=()=>{
+      const raw=q.value.trim(),t=raw.toLowerCase();list.innerHTML="";
+      Object.keys(optional).filter(id=>!t||(apps[id].title+" "+optional[id]).toLowerCase().includes(t)).forEach(id=>{
+        const on=installed.includes(id);
+        row(apps[id].icon,apps[id].title,optional[id]+" · runs inside WebOS",on?"Remove":"Install",on?"#777":"#0067c0",()=>{toggleInstall(id);draw()});
+      });
+      apks.filter(a=>!t||(a[0]+" apk").toLowerCase().includes(t)).forEach(a=>row(a[1],a[0],a[2]+" · APK download","Download","#c77dff",()=>getApk(a[3])));
+      if(!t||"apk link install".includes(t))row("🔗","Install from an APK link","Paste a direct https link to an .apk file","Paste","#777",()=>{const u=prompt("Paste a direct APK link (https://...)");if(u)getApk(u.trim())});
+      real.filter(a=>!t||a[0].toLowerCase().replace(/\s/g,"").includes(t.replace(/\s/g,""))).forEach(a=>
+        {const inst=window.Android&&Android.isInstalled&&Android.isInstalled(a[2]);row(a[1],a[0],inst?"Installed on your phone":"Android app · from the Play Store",inst?"Open":"Get","#2a9d8f",()=>inst?Android.launchApp(a[2]):openExt("https://play.google.com/store/apps/details?id="+a[2]));});
+      if(t)row("🔎","Not listed? Search the Play Store for "+esc(raw),"Opens the Play Store only when you tap","Open","#777",()=>openExt("https://play.google.com/store/search?q="+encodeURIComponent(raw)+"&c=apps","_blank"));
+    };
+    q.oninput=draw;draw();
+  }};
+
+apps.spotify={title:"Spotify",icon:"🎧",
+  render:()=>`<div class="br"><div class="top"><input class="sp" placeholder="Paste a Spotify playlist, album or track link"><button class="go">Play</button></div><iframe allow="encrypted-media" src="https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M"></iframe><small>Log in inside the player for full songs. <a href="https://open.spotify.com" target="_blank">Open Spotify</a></small></div>`,
+  init(el){
+    const f=el.querySelector("iframe"),u=el.querySelector(".sp");
+    const go=()=>{const m=u.value.match(/open\.spotify\.com\/(?:intl-[a-z]+\/)?(playlist|album|track|artist|show|episode)\/([A-Za-z0-9]+)/);
+      if(m)f.src="https://open.spotify.com/embed/"+m[1]+"/"+m[2]; else alert("Paste a link like open.spotify.com/playlist/...")};
+    el.querySelector(".go").onclick=go;u.onkeydown=e=>{if(e.key==="Enter")go()};
+  }};
+
+apps.office={title:"Office",icon:"📄",
+  render:()=>`<div class="pad"><p style="margin-bottom:12px">Open the online versions. Sign in with a free Microsoft account.</p><button data-u="https://www.office.com/launch/word">📘 Word</button><button data-u="https://www.office.com/launch/excel">📗 Excel</button><button data-u="https://www.office.com/launch/powerpoint">📙 PowerPoint</button><p style="margin-top:16px;font-size:13px"><a href="https://play.google.com/store/apps/details?id=com.microsoft.office.officehubrow" target="_blank">Install the Microsoft 365 app from the Play Store</a></p></div>`,
+  init(el){el.querySelectorAll("[data-u]").forEach(b=>b.onclick=()=>openExt(b.dataset.u,"_blank"))}};
+
+apps.paint={title:"Paint",icon:"🎨",
+  render:()=>`<div class="pt"><div class="tools">${["#000000","#e63946","#2a9d8f","#1d70f5","#f4a300"].map(c=>`<button data-c="${c}" style="background:${c}"></button>`).join("")}<button class="cl">Clear</button><button class="sp">Save to D:</button></div><canvas></canvas></div>`,
+  init(el){
+    const cv=el.querySelector("canvas"),ctx=cv.getContext("2d");let col="#000000",on=false;
+    const clear=()=>{cv.width=cv.clientWidth;cv.height=cv.clientHeight;ctx.fillStyle="#fff";ctx.fillRect(0,0,cv.width,cv.height)};
+    requestAnimationFrame(clear);
+    cv.style.touchAction="none";
+    const pos=e=>{const b=cv.getBoundingClientRect();return[e.clientX-b.left,e.clientY-b.top]};
+    cv.onpointerdown=e=>{on=true;cv.setPointerCapture(e.pointerId);const[x,y]=pos(e);ctx.beginPath();ctx.moveTo(x,y)};
+    cv.onpointermove=e=>{if(!on)return;const[x,y]=pos(e);ctx.strokeStyle=col;ctx.lineWidth=4;ctx.lineCap="round";ctx.lineTo(x,y);ctx.stroke()};
+    cv.onpointerup=()=>on=false;
+    el.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>col=b.dataset.c);
+    el.querySelector(".cl").onclick=clear;
+    const sb=el.querySelector(".sp");
+    sb.onclick=()=>cv.toBlob(async b=>{try{await fput({path:"D:/Pictures/drawing-"+Date.now()+".png",dir:false,mime:"image/png",size:b.size,blob:b});sb.textContent="Saved";setTimeout(()=>sb.textContent="Save to D:",1000)}catch(e){alert("Storage is not available here.")}});
+  }};
+
+apps.music={title:"Music",icon:"🎵",
+  render:()=>`<div class="pad"><input type="file" accept="audio/*" multiple><ol class="pl" style="text-align:left;margin:10px 0 10px 20px;font-size:14px"></ol><audio controls style="width:100%"></audio></div>`,
+  init(el){
+    const au=el.querySelector("audio"),pl=el.querySelector(".pl");let files=[],cur=0;
+    const play=i=>{cur=i;au.src=URL.createObjectURL(files[i]);au.play();[...pl.children].forEach((li,k)=>li.style.fontWeight=k===i?"700":"400")};
+    el.querySelector("input").onchange=e=>{
+      files=[...e.target.files];pl.innerHTML="";
+      files.forEach((f,i)=>{const li=document.createElement("li");li.textContent=f.name;li.onclick=()=>play(i);pl.appendChild(li)});
+      if(files.length)play(0);
+    };
+    au.onended=()=>{if(cur+1<files.length)play(cur+1)};
+  }};
+
+apps.calendar={title:"Calendar",icon:"📅",
+  render:()=>`<div class="cal"><div class="ch"><button class="pv">‹</button><b></b><button class="nx">›</button></div><div class="cg"></div></div>`,
+  init(el){
+    const d=new Date();d.setDate(1);
+    const t=el.querySelector("b"),g=el.querySelector(".cg");
+    const draw=()=>{
+      t.textContent=d.toLocaleDateString([],{month:"long",year:"numeric"});
+      const n=new Date(d.getFullYear(),d.getMonth()+1,0).getDate(),now=new Date();
+      let h="SMTWTFS".split("").map(x=>`<div class="dn">${x}</div>`).join("");
+      for(let i=0;i<d.getDay();i++)h+="<div></div>";
+      for(let i=1;i<=n;i++){
+        const td=i===now.getDate()&&d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+        h+=`<div class="${td?"td":""}">${i}</div>`;
+      }
+      g.innerHTML=h;
+    };
+    el.querySelector(".pv").onclick=()=>{d.setMonth(d.getMonth()-1);draw()};
+    el.querySelector(".nx").onclick=()=>{d.setMonth(d.getMonth()+1);draw()};
+    draw();
+  }};
+
+apps.spotify={title:"Spotify",icon:"🎧",
+  render:()=>`<div class="br"><div class="top"><input class="sl" placeholder="Paste a Spotify link"><button class="ld">Load</button></div><div class="top" style="padding-top:0"><button class="p1">Top Hits</button><button class="p2">Chill Hits</button><button class="op">Open Spotify app</button></div><iframe class="sp" allow="encrypted-media" src="https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M"></iframe></div>`,
+  init(el){
+    const f=el.querySelector(".sp"),sl=el.querySelector(".sl");
+    const set=(t,id)=>f.src="https://open.spotify.com/embed/"+t+"/"+id;
+    el.querySelector(".ld").onclick=()=>{
+      const m=sl.value.match(/open\.spotify\.com\/(?:intl-[a-z]+\/)?(track|album|playlist|artist|episode|show)\/([A-Za-z0-9]+)/);
+      if(m)set(m[1],m[2]);else alert("Paste a link from Spotify: Share, then Copy link.");
+    };
+    el.querySelector(".p1").onclick=()=>set("playlist","37i9dQZF1DXcBWIGoYBM5M");
+    el.querySelector(".p2").onclick=()=>set("playlist","37i9dQZF1DX4WYpdgoIcn6");
+    el.querySelector(".op").onclick=()=>openExt("https://open.spotify.com","_blank");
+  }};
+
+apps.code={title:"Code",icon:"⌨️",
+  render:()=>`<div class="cd"><div class="tools"><button class="run">▶ Run</button><button class="sv">Save</button></div><textarea spellcheck="false" autocapitalize="off" autocorrect="off"></textarea><iframe hidden sandbox="allow-scripts"></iframe></div>`,
+  init(el){
+    const ta=el.querySelector("textarea"),f=el.querySelector("iframe"),run=el.querySelector(".run"),sv=el.querySelector(".sv"),tools=el.querySelector(".tools");
+    let saved="";try{saved=localStorage.getItem("webos-code")||""}catch(e){}
+    ta.value=saved||"<!DOCTYPE html>\n<html>\n<body style=\"font-family:sans-serif\">\n  <h1>Hello WebOS</h1>\n  <button onclick=\"this.textContent='Clicked!'\">Tap me</button>\n</body>\n</html>";
+    const save=()=>{try{localStorage.setItem("webos-code",ta.value)}catch(e){}};
+    ta.oninput=save;
+    sv.onclick=()=>{save();sv.textContent="Saved";setTimeout(()=>sv.textContent="Save",900)};
+    let prev=false;
+    run.onclick=()=>{prev=!prev;if(prev)f.srcdoc=ta.value;f.hidden=!prev;ta.hidden=prev;run.textContent=prev?"✎ Edit":"▶ Run"};
+    "<>/=\";{}()".split("").forEach(c=>{
+      const b=document.createElement("button");b.textContent=c;
+      b.onclick=()=>{if(prev)return;ta.setRangeText(c,ta.selectionStart,ta.selectionEnd,"end");ta.focus();save()};
+      tools.appendChild(b);
+    });
+  }};
+
+// ----- Lock screen -----
+let pin="1234";try{pin=localStorage.getItem("webos-pin")||pin}catch(e){}
+let entered="";
+const lockEl=document.getElementById("lock"),dots=document.getElementById("dots");
+function drawDots(){dots.textContent="●".repeat(entered.length)+"○".repeat(Math.max(0,pin.length-entered.length))}
+function lockNow(){entered="";drawDots();lockEl.style.display="flex";closeStart()}
+function changePin(){
+  const n=prompt("New PIN (4 to 6 digits)");
+  if(n&&/^\d{4,6}$/.test(n)){pin=n;try{localStorage.setItem("webos-pin",n)}catch(e){}alert("PIN changed")}
+  else if(n!==null)alert("Use 4 to 6 digits")
+}
+lockEl.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{
+  const k=b.dataset.k;
+  entered=k==="del"?entered.slice(0,-1):entered+k;
+  drawDots();
+  if(entered.length>=pin.length){
+    if(entered===pin)lockEl.style.display="none";
+    else{dots.textContent="Wrong PIN";entered="";setTimeout(drawDots,700)}
+  }
+});
+function lockClock(){
+  const d=new Date();
+  document.getElementById("lt").textContent=d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+  document.getElementById("ld").textContent=d.toLocaleDateString([],{weekday:"long",day:"numeric",month:"long"});
+}
+lockClock();setInterval(lockClock,10000);drawDots();
+document.getElementById("lockBtn").onclick=lockNow;
+
+// ----- Long-press menu -----
+const menu=document.getElementById("menu");
+function showMenu(x,y){menu.style.display="block";menu.style.left=Math.min(x,innerWidth-180)+"px";menu.style.top=Math.min(y,innerHeight-170)+"px"}
+function hideMenu(){menu.style.display="none"}
+menu.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+  hideMenu();
+  ({wall:()=>{theme.w=(theme.w+1)%walls.length;applyTheme(theme)},set:()=>openApp("settings"),lock:lockNow})[b.dataset.m]();
+});
+
+let z=10, wins={};
+const desktop=document.getElementById("desktop");
+const tasks=document.getElementById("tasks");
+const startEl=document.getElementById("start");
+
+function openApp(id){
+  closeStart();
+  if(wins[id]){ wins[id].win.style.display="flex"; focus(id); return }
+  const a=apps[id], n=Object.keys(wins).length;
+  const win=document.createElement("div");
+  win.className="win";
+  win.style.left=(20+n*18)+"px"; win.style.top=(40+n*18)+"px";
+  win.innerHTML=`<div class="title"><span>${a.icon}</span><b>${a.title}</b>
+    <button class="min">–</button><button class="mx">▢</button><button class="x">✕</button></div>
+    <div class="body">${a.render()}</div>`;
+  desktop.appendChild(win);
+  const btn=document.createElement("button");
+  btn.className="tb"; btn.textContent=a.icon;
+  btn.onclick=()=>{ const hidden=win.style.display==="none";
+    if(hidden||!btn.classList.contains("on")){win.style.display="flex";focus(id)}
+    else{win.style.display="none";btn.classList.remove("on")} };
+  tasks.appendChild(btn);
+  wins[id]={win,btn};
+  if(a.init)a.init(win);
+
+  win.addEventListener("pointerdown",()=>focus(id));
+  win.querySelector(".min").onclick=()=>{win.style.display="none";btn.classList.remove("on")};
+  win.querySelector(".mx").onclick=()=>win.classList.toggle("max");
+  win.querySelector(".x").onclick=()=>{win.remove();btn.remove();delete wins[id]};
+
+  // drag by title bar (touch + mouse)
+  const t=win.querySelector(".title");
+  t.addEventListener("pointerdown",e=>{
+    if(e.target.tagName==="BUTTON"||win.classList.contains("max"))return;
+    const dx=e.clientX-win.offsetLeft, dy=e.clientY-win.offsetTop;
+    t.setPointerCapture(e.pointerId);
+    const move=ev=>{
+      win.style.left=Math.max(-win.offsetWidth+60,Math.min(innerWidth-60,ev.clientX-dx))+"px";
+      win.style.top=Math.max(0,Math.min(innerHeight-100,ev.clientY-dy))+"px";
+    };
+    const up=ev=>{
+      t.removeEventListener("pointermove",move);t.removeEventListener("pointerup",up);
+      const H="calc(100vh - 48px)";
+      if(ev.clientY<14)win.classList.add("max");
+      else if(ev.clientX<24)Object.assign(win.style,{left:"0",top:"0",width:"50vw",height:H});
+      else if(ev.clientX>innerWidth-24)Object.assign(win.style,{left:"50vw",top:"0",width:"50vw",height:H});
+    };
+    t.addEventListener("pointermove",move); t.addEventListener("pointerup",up);
+  });
+  focus(id);
+}
+function focus(id){
+  Object.entries(wins).forEach(([k,w])=>w.btn.classList.toggle("on",k===id));
+  wins[id].win.style.zIndex=++z;
+}
+function closeStart(){startEl.classList.remove("open")}
+
+document.getElementById("startBtn").onclick=e=>{e.stopPropagation();startEl.classList.toggle("open")};
+renderLaunchers();
+let lp,sx=0,sy=0;
+desktop.oncontextmenu=e=>e.preventDefault();
+desktop.addEventListener("pointerdown",e=>{
+  if(e.target!==desktop)return;
+  closeStart();hideMenu();sx=e.clientX;sy=e.clientY;
+  lp=setTimeout(()=>showMenu(sx,sy),550);
+});
+desktop.addEventListener("pointermove",e=>{if(Math.hypot(e.clientX-sx,e.clientY-sy)>12)clearTimeout(lp)});
+["pointerup","pointercancel"].forEach(t=>desktop.addEventListener(t,()=>clearTimeout(lp)));
+
+// Exit to Funtouch: calls the Android wrapper if present
+document.getElementById("exit").onclick=()=>{
+  if(window.Android&&Android.exitToDefaultLauncher)Android.exitToDefaultLauncher();
+  else alert("This works once the page is wrapped in the Android launcher app.\nFor now: Settings → Apps → Default apps → Home app.");
+};
+
+document.addEventListener("pointerdown",async()=>{
+  try{ if(!document.fullscreenElement) await document.documentElement.requestFullscreen();
+       await screen.orientation.lock("landscape"); }catch(e){}
+},{once:true});
+
+function tick(){
+  const d=new Date();
+  document.getElementById("clock").innerHTML=
+    d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+"<br>"+d.toLocaleDateString([],{day:"numeric",month:"short"});
+}
+tick(); setInterval(tick,30000);
+if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0)navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
