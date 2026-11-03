@@ -6,9 +6,7 @@
 <title>WebOS</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0a2a6b">
-<meta name="mobile-web-app-capable" content="yes">
 <link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
 <style>
 :root{
   --accent:#60cdff; --bg1:#0a2a6b; --bg2:#1e90ff; --bg3:#7b2ff7;
@@ -86,6 +84,47 @@ html,body{height:100%;overflow:hidden;font-family:"Segoe UI",system-ui,Roboto,sa
 .cd textarea{flex:1;width:100%;border:0;padding:10px;font:13px Consolas,monospace;resize:none;outline:none;user-select:text;white-space:pre;overflow:auto}
 .cd iframe{flex:1;border:0;width:100%;background:#fff}
 .cd [hidden]{display:none}
+.wd{display:flex;flex-direction:column;height:100%}
+.wd .tb2{display:flex;gap:4px;padding:6px;background:#f3f3f3;overflow-x:auto;flex:none;align-items:center}
+.wd .tb2 button,.wd .tb2 select{border:0;border-radius:6px;padding:7px 10px;background:#dbe9f7;font-size:13px;min-width:34px;flex:none}
+.wd .pg{flex:1;overflow:auto;background:#d9d9d9;padding:10px}
+.wd .ed{background:#fff;color:#000;min-height:100%;max-width:820px;margin:0 auto;padding:24px;outline:none;user-select:text;font:15px/1.5 Arial,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.wd .st{font-size:11px;color:#555;padding:3px 8px;background:#f3f3f3}
+.td{display:flex;flex-direction:column;height:100%}
+.td .add{display:flex;gap:6px;padding:8px;background:#f3f3f3}
+.td .add input{flex:1;border:1px solid #ccc;border-radius:6px;padding:8px;font-size:14px;user-select:text;min-width:0}
+.td .add button,.td .ft button{border:0;border-radius:6px;padding:7px 12px;background:#e2e2e2;font-size:13px}
+.td .add .ad{background:#0067c0;color:#fff}
+.td .ls{flex:1;overflow:auto}
+.td .it{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #eee;font-size:14px}
+.td .it span{flex:1;word-break:break-word}
+.td .it.dn span{text-decoration:line-through;color:#888}
+.td .it input{width:20px;height:20px}
+.td .it button{border:0;background:none;font-size:16px;padding:4px 8px}
+.td .ft{display:flex;gap:6px;align-items:center;padding:6px 8px;background:#f3f3f3;font-size:12px;flex-wrap:wrap}
+.td .ft button.on{background:#0067c0;color:#fff}
+.td .em{padding:20px;text-align:center;color:#777;font-size:14px}
+.bw{display:flex;flex-direction:column;height:100%}
+.bw [hidden]{display:none!important}
+.bw .tabs{display:flex;overflow-x:auto;background:#e6e6e6;gap:2px;padding:4px 4px 0}
+.bw .tab{flex:none;max-width:140px;display:flex;align-items:center;gap:4px;padding:6px 8px;background:#d4d4d4;border-radius:8px 8px 0 0;font-size:12px;white-space:nowrap}
+.bw .tab.on{background:#fff}
+.bw .tab span{overflow:hidden;text-overflow:ellipsis}
+.bw .tab b{font-weight:400;padding:0 4px}
+.bw .tabs .nt{flex:none;border:0;background:none;font-size:18px;padding:0 10px}
+.bw .top{display:flex;gap:3px;padding:5px;background:#fff;border-bottom:1px solid #ddd}
+.bw .top button{border:0;border-radius:6px;background:#eee;padding:0 9px;min-width:30px;font-size:14px}
+.bw .top input{flex:1;min-width:0;border:1px solid #ccc;border-radius:16px;padding:6px 10px;font-size:13px;user-select:text}
+.bw .view{flex:1;position:relative;min-height:0}
+.bw .view>*{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff;overflow:auto}
+.bw .home{padding:14px;text-align:center}
+.bw .home input{width:70%;border:1px solid #ccc;border-radius:20px;padding:9px 14px;font-size:14px;user-select:text}
+.bw .home select{padding:8px;border-radius:8px;border:1px solid #ccc}
+.bw .qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin:14px 0}
+.bw .q{border:0;background:#f1f1f1;border-radius:10px;padding:10px 4px;font-size:12px}
+.bw .q span{display:block;font-size:24px}
+.bw .blk{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;text-align:center}
+.bw .blk button{border:0;border-radius:6px;padding:10px 16px;background:#0067c0;color:#fff}
 .br select{border:1px solid #ccc;border-radius:6px;background:#fff;max-width:92px;font-size:12px}
 .br .logo{font-size:32px;font-weight:600}
 .br .hp input{width:80%;flex:none;border-radius:20px;padding:9px 14px}
@@ -245,7 +284,8 @@ apps.files={title:"Files",icon:"📁",
     };
     const open=async rec=>{
       const mime=rec.mime||"",name=rec.path.split("/").pop(),url=URL.createObjectURL(rec.blob);
-      if(mime.startsWith("text/")||/\.(txt|md|json|csv|html|css|js)$/i.test(name)){const t=await rec.blob.text();openApp("notepad");wins.notepad.win.querySelector("textarea").value=t}
+      if(/\.doc$/i.test(name)){const t=await rec.blob.text();openApp("word");const w=wins.word.win;w.querySelector(".ed").innerHTML=cleanHTML(t);w.dataset.fname=name;w.querySelector(".ed").dispatchEvent(new Event("input"))}
+      else if(mime.startsWith("text/")||/\.(txt|md|json|csv|html|css|js)$/i.test(name)){const t=await rec.blob.text();openApp("notepad");wins.notepad.win.querySelector("textarea").value=t}
       else if(mime.startsWith("image/"))preview(`<img src="${url}" style="max-width:100%;max-height:100%">`);
       else if(mime.startsWith("audio/"))preview(`<audio controls autoplay src="${url}" style="width:90%"></audio>`);
       else if(mime.startsWith("video/"))preview(`<video controls autoplay src="${url}" style="max-width:100%;max-height:100%"></video>`);
@@ -264,7 +304,7 @@ apps.files={title:"Files",icon:"📁",
       items.forEach(it=>{
         const d=document.createElement("div");d.className="row";d.style.cssText="display:flex;align-items:center;gap:8px";
         const m=(it.rec&&it.rec.mime)||"";
-        const ic=it.drive?"💽":it.dir?"📁":m.startsWith("image/")?"🖼️":m.startsWith("audio/")?"🎵":m.startsWith("video/")?"🎬":m.startsWith("text/")?"📄":"📦";
+        const ic=it.drive?"💽":it.dir?"📁":/\.doc$/i.test(it.n)?"📘":m.startsWith("image/")?"🖼️":m.startsWith("audio/")?"🎵":m.startsWith("video/")?"🎬":m.startsWith("text/")?"📄":"📦";
         const sp=document.createElement("span");sp.style.flex="1";sp.textContent=ic+" "+it.n;d.appendChild(sp);
         if(it.rec&&!it.dir){const z=document.createElement("small");z.style.color="#777";z.textContent=Math.max(1,Math.round(it.rec.size/1024))+" KB";d.appendChild(z)}
         if(it.rec){const x=document.createElement("button");x.textContent="✕";x.style.cssText="border:0;background:none;font-size:16px;padding:4px 8px";
@@ -317,33 +357,106 @@ apps.clock={title:"Clock",icon:"⏱️",
   }};
 
 apps.browser={title:"Browser",icon:"🌐",
-  render:()=>`<div class="br"><div class="top"><button class="home">🏠</button><input class="url" placeholder="Search or type address"><select class="eng"><option value="w">Wikipedia</option><option value="b">Bing</option></select><button class="go">Go</button><button class="gg" title="Search on Google in a new tab">G↗</button><button class="ext" title="Open this page in a new tab">↗</button></div><div class="hp"><div class="logo">Search</div><input class="q" placeholder="Search the web"><div><button class="ws">Search</button></div><small>Results open inside WebOS. If a page shows blank, that site blocks being embedded: try the other search engine in the list at the top. Google does not allow being shown inside apps, so tap G↗ to search on Google in a new tab.</small></div><iframe hidden></iframe></div>`,
+  render:()=>`<div class="bw"><div class="tabs"></div><div class="top"><button class="bk">◀</button><button class="fw">▶</button><button class="rl">⟳</button><button class="hm">🏠</button><input class="url" placeholder="Search or type address"><button class="go">Go</button><button class="st">☆</button><button class="ext">↗</button></div><div class="view"></div></div>`,
   init(el){
-    const f=el.querySelector("iframe"),hp=el.querySelector(".hp"),u=el.querySelector(".url"),q=el.querySelector(".q"),eng=el.querySelector(".eng"),enc=encodeURIComponent;
-    const engines={w:"https://en.m.wikipedia.org/w/index.php?search=",b:"https://www.bing.com/search?q="};
+    const $=q=>el.querySelector(q),tabsEl=$(".tabs"),view=$(".view"),urlI=$(".url"),enc=encodeURIComponent;
+    const BLOCK=/(^|\.)(google\.[a-z.]+|youtube\.com|whatsapp\.com|instagram\.com|facebook\.com|twitter\.com|x\.com|netflix\.com|linkedin\.com|github\.com|reddit\.com|amazon\.[a-z.]+|spotify\.com)$/;
+    const DEF=[["Wikipedia","📖","https://en.m.wikipedia.org"],["WhatsApp","💬","https://web.whatsapp.com"],["Instagram","📸","https://www.instagram.com"],["YouTube","▶️","https://m.youtube.com"],["Google","🔎","https://www.google.com"]];
+    let bm=null,hist=null;
+    try{bm=JSON.parse(localStorage.getItem("webos-bm"));hist=JSON.parse(localStorage.getItem("webos-hist"))}catch(e){}
+    bm=bm||DEF;hist=hist||[];
+    const persist=()=>{try{localStorage.setItem("webos-bm",JSON.stringify(bm));localStorage.setItem("webos-hist",JSON.stringify(hist))}catch(e){}};
+    let eng="w";const ENG={w:"https://en.m.wikipedia.org/w/index.php?search=",b:"https://www.bing.com/search?q="};
     const isUrl=v=>/^https?:\/\//.test(v)||(v.includes(".")&&!v.includes(" "));
-    let last="";
-    const show=v=>{
-      v=v.trim();if(!v)return;
-      let l;
-      if(isUrl(v))l=/^https?:\/\//.test(v)?v:"https://"+v;
-      else{last=v;l=engines[eng.value]+enc(v)}
-      u.value=l;f.src=l;f.hidden=false;hp.hidden=true;
+    const norm=v=>{v=v.trim();return isUrl(v)?(/^https?:\/\//.test(v)?v:"https://"+v):ENG[eng]+enc(v)};
+    const host=u=>{try{return new URL(u).hostname}catch(e){return ""}};
+    let tabs=[],cur=null,nid=1;
+
+    const setNode=(t,n)=>{if(t.node)t.node.remove();t.node=n;view.appendChild(n);n.hidden=t!==cur};
+    const renderTabs=()=>{
+      tabsEl.innerHTML="";
+      tabs.forEach(t=>{
+        const d=document.createElement("div");d.className="tab"+(t===cur?" on":"");
+        d.innerHTML=`<span>${esc(t.title)}</span><b>✕</b>`;
+        d.onclick=()=>{cur=t;sync()};
+        d.querySelector("b").onclick=e=>{e.stopPropagation();closeTab(t)};
+        tabsEl.appendChild(d);
+      });
+      const p=document.createElement("button");p.className="nt";p.textContent="+";p.onclick=()=>newTab();tabsEl.appendChild(p);
     };
-    el.querySelector(".go").onclick=()=>show(u.value);
-    u.onkeydown=e=>{if(e.key==="Enter")show(u.value)};
-    q.onkeydown=e=>{if(e.key==="Enter")show(q.value)};
-    el.querySelector(".ws").onclick=()=>show(q.value);
-    eng.onchange=()=>{if(last)show(last)};
-    el.querySelector(".gg").onclick=()=>{const t=(last||q.value||u.value).trim();openExt("https://www.google.com/search?q="+enc(t),"_blank")};
-    el.querySelector(".ext").onclick=()=>{if(!f.hidden&&f.src)openExt(f.src,"_blank")};
-    el.querySelector(".home").onclick=()=>{f.hidden=true;hp.hidden=false;u.value=""};
+    const sync=()=>{
+      tabs.forEach(t=>{if(t.node)t.node.hidden=t!==cur});
+      urlI.value=(cur&&cur.url)||"";
+      $(".st").textContent=cur&&cur.url&&bm.some(b=>b[2]===cur.url)?"★":"☆";
+      renderTabs();
+    };
+    const closeTab=t=>{
+      const k=tabs.indexOf(t);if(t.node)t.node.remove();tabs.splice(k,1);
+      if(!tabs.length){newTab();return}
+      if(cur===t)cur=tabs[Math.max(0,k-1)];
+      sync();
+    };
+    const showHome=t=>{
+      t.url="";t.title="New tab";
+      const n=document.createElement("div");n.className="home";
+      n.innerHTML=`<div style="font-size:26px;font-weight:600;margin-bottom:8px">Search</div><input class="q" placeholder="Search or type an address"> <select class="eg"><option value="w">Wikipedia</option><option value="b">Bing</option></select><div class="qgrid"></div><div class="rc" style="text-align:left;font-size:12px;color:#555"></div><div style="font-size:11px;color:#888;margin-top:8px">Tip: press and hold a shortcut to remove it. Tap ☆ to save a page.</div>`;
+      const q=n.querySelector(".q"),eg=n.querySelector(".eg");eg.value=eng;
+      q.onkeydown=e=>{if(e.key==="Enter"&&q.value.trim())nav(t,norm(q.value))};
+      eg.onchange=()=>{eng=eg.value};
+      const g=n.querySelector(".qgrid");
+      bm.forEach((b,i)=>{
+        const x=document.createElement("button");x.className="q";x.innerHTML=`<span>${b[1]}</span>`+esc(b[0]);
+        x.onclick=()=>nav(t,b[2]);
+        x.oncontextmenu=e=>{e.preventDefault();if(confirm("Remove "+b[0]+"?")){bm.splice(i,1);persist();showHome(t);sync()}};
+        g.appendChild(x);
+      });
+      const rc=n.querySelector(".rc");
+      if(hist.length){
+        rc.innerHTML="<b>Recent</b>";
+        hist.slice(0,6).forEach(u=>{const a=document.createElement("div");a.textContent=u;a.style.cssText="padding:7px 0;border-bottom:1px solid #eee;overflow:hidden;text-overflow:ellipsis;white-space:nowrap";a.onclick=()=>nav(t,u);rc.appendChild(a)});
+      }
+      setNode(t,n);
+    };
+    const nav=(t,url,push=true)=>{
+      if(push){t.hist=t.hist.slice(0,t.i+1);t.hist.push(url);t.i=t.hist.length-1}
+      t.url=url;t.title=host(url).replace(/^(www|m|en\.m)\./,"")||"Page";
+      hist=[url,...hist.filter(x=>x!==url)].slice(0,30);persist();
+      let n;
+      if(BLOCK.test(host(url))){
+        n=document.createElement("div");n.className="blk";
+        n.innerHTML=`<div style="font-size:34px">🚫</div><b>${esc(t.title)}</b><div style="font-size:13px;color:#555">This site does not allow being shown inside WebOS. Its owners block it for security.</div><button>Open in my phone browser</button><div style="font-size:12px;color:#777">Tip: for WhatsApp or Instagram, get the real app from the Store and open it from there.</div>`;
+        n.querySelector("button").onclick=()=>openExt(url);
+      }else{
+        n=document.createElement("iframe");n.src=url;n.setAttribute("allow","encrypted-media; fullscreen");
+      }
+      setNode(t,n);sync();
+    };
+    const newTab=url=>{
+      const t={id:nid++,url:"",title:"New tab",hist:[],i:-1,node:null};
+      tabs.push(t);cur=t;
+      if(url)nav(t,url);else{showHome(t);sync()}
+    };
+
+    $(".bk").onclick=()=>{if(cur.i>0){cur.i--;nav(cur,cur.hist[cur.i],false)}};
+    $(".fw").onclick=()=>{if(cur.i<cur.hist.length-1){cur.i++;nav(cur,cur.hist[cur.i],false)}};
+    $(".rl").onclick=()=>{if(cur.node&&cur.node.tagName==="IFRAME")cur.node.src=cur.url};
+    $(".hm").onclick=()=>{showHome(cur);sync()};
+    const go=()=>{if(urlI.value.trim())nav(cur,norm(urlI.value))};
+    $(".go").onclick=go;urlI.onkeydown=e=>{if(e.key==="Enter")go()};
+    $(".st").onclick=()=>{
+      if(!cur.url)return;
+      const k=bm.findIndex(b=>b[2]===cur.url);
+      if(k>=0)bm.splice(k,1);else bm.push([cur.title,"🔖",cur.url]);
+      persist();sync();
+    };
+    $(".ext").onclick=()=>{if(cur.url)openExt(cur.url)};
+    newTab();
   }};
 
-const core=["notepad","calc","about","files","browser","clock","settings","store"];
-const optional={spotify:"Stream music with Spotify",paint:"Draw with your finger",music:"Play songs from your phone",calendar:"Month view with today marked",spotify:"Music and playlists",office:"Word, Excel and PowerPoint online",code:"Write HTML, CSS and JS with live preview"};
+const core=["notepad","word","calc","about","files","browser","clock","settings","store"];
+const optional={spotify:"Stream music with Spotify",paint:"Draw with your finger",music:"Play songs from your phone",calendar:"Month view with today marked",spotify:"Music and playlists",office:"Word, Excel and PowerPoint online",code:"Write HTML, CSS and JS with live preview",todo:"Tasks with checkboxes, saved on your phone"};
 let installed=core.slice();
-try{const sv=JSON.parse(localStorage.getItem("webos-apps"));if(sv)installed=sv}catch(e){}
+try{const sv=JSON.parse(localStorage.getItem("webos-apps"));if(sv)installed=[...new Set([...core,...sv])]}catch(e){}
 try{if(!localStorage.getItem("webos-spotify-seen")){if(!installed.includes("spotify"))installed.push("spotify");localStorage.setItem("webos-spotify-seen","1");localStorage.setItem("webos-apps",JSON.stringify(installed))}}catch(e){}
 function toggleInstall(id){
   if(installed.includes(id)){installed=installed.filter(x=>x!==id);if(wins[id])wins[id].win.querySelector(".x").click()}
@@ -492,6 +605,84 @@ apps.code={title:"Code",icon:"⌨️",
     });
   }};
 
+function cleanHTML(t){
+  const d=new DOMParser().parseFromString(t,"text/html");
+  d.querySelectorAll("script,iframe,object,embed,link,style").forEach(n=>n.remove());
+  d.body.querySelectorAll("*").forEach(n=>[...n.attributes].forEach(a=>{if(/^on/i.test(a.name)||/^javascript:/i.test(a.value))n.removeAttribute(a.name)}));
+  return d.body.innerHTML;
+}
+apps.word={title:"Word",icon:"📘",max:true,
+  render:()=>`<div class="wd"><div class="tb2"><button class="nw">New</button><button class="sv">Save</button><button class="dn">⬇</button><select class="fm"><option>Arial</option><option>Times New Roman</option><option>Georgia</option><option>Courier New</option></select><select class="fs"><option value="2">10</option><option value="3" selected>12</option><option value="4">14</option><option value="5">18</option><option value="6">24</option><option value="7">36</option></select><select class="hd"><option value="p">Normal</option><option value="h1">Heading 1</option><option value="h2">Heading 2</option></select><input type="color" class="cl" value="#000000" style="width:36px;height:32px;border:0;padding:0;flex:none"></div><div class="pg"><div class="ed" contenteditable="true"></div></div><div class="st"></div></div>`,
+  init(el){
+    const ed=el.querySelector(".ed"),st=el.querySelector(".st"),tb=el.querySelector(".tb2");
+    let rng=null;
+    document.addEventListener("selectionchange",()=>{
+      if(!el.isConnected)return;
+      const s=getSelection();if(s.rangeCount&&ed.contains(s.anchorNode))rng=s.getRangeAt(0).cloneRange();
+    });
+    const upd=()=>{const t=ed.innerText.trim();st.textContent=(t?t.split(/\s+/).length:0)+" words"+(el.dataset.fname?" · "+el.dataset.fname:"")};
+    const run=(c,v)=>{
+      ed.focus();
+      if(rng){const s=getSelection();s.removeAllRanges();s.addRange(rng)}
+      document.execCommand(c,false,v||null);upd();
+    };
+    ed.oninput=upd;upd();
+    [["B","bold"],["I","italic"],["U","underline"],["•","insertUnorderedList"],["1.","insertOrderedList"],["⇤","justifyLeft"],["↔","justifyCenter"],["⇥","justifyRight"],["↶","undo"],["↷","redo"]].forEach(([l,c])=>{
+      const b=document.createElement("button");b.textContent=l;
+      if(l==="B")b.style.fontWeight="700";if(l==="I")b.style.fontStyle="italic";if(l==="U")b.style.textDecoration="underline";
+      b.onmousedown=e=>e.preventDefault();b.onclick=()=>run(c);tb.appendChild(b);
+    });
+    el.querySelector(".fm").onchange=e=>run("fontName",e.target.value);
+    el.querySelector(".fs").onchange=e=>run("fontSize",e.target.value);
+    el.querySelector(".hd").onchange=e=>run("formatBlock",e.target.value==="p"?"<p>":"<"+e.target.value+">");
+    el.querySelector(".cl").oninput=e=>run("foreColor",e.target.value);
+    const wrap=(h,n)=>`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${n}</title></head><body>${h}</body></html>`;
+    el.querySelector(".sv").onclick=async()=>{
+      let n=(el.dataset.fname||"").replace(/\.doc$/i,"")||prompt("File name","Document1");
+      if(!n)return;n=n.replace(/[\/\\]/g,"");
+      el.dataset.fname=n+".doc";
+      const b=new Blob([wrap(ed.innerHTML,n)],{type:"application/msword"});
+      try{await fput({path:"D:/Documents/"+n+".doc",dir:false,mime:"application/msword",size:b.size,blob:b});toast("Saved to D:/Documents/"+n+".doc")}
+      catch(e){alert("Storage is not available here.")}
+      upd();
+    };
+    el.querySelector(".nw").onclick=()=>{if(confirm("Start a new document?")){ed.innerHTML="";delete el.dataset.fname;upd()}};
+    el.querySelector(".dn").onclick=()=>{
+      const n=el.dataset.fname||"Document1.doc",b=new Blob([wrap(ed.innerHTML,n)],{type:"application/msword"});
+      const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=n;a.click();
+    };
+  }};
+
+apps.todo={title:"To-do",icon:"✅",
+  render:()=>`<div class="td"><div class="add"><input type="text" placeholder="Add a task" maxlength="120"><button class="ad">Add</button></div><div class="ls"></div><div class="ft"><span class="cnt"></span><span style="flex:1"></span><button data-f="all" class="on">All</button><button data-f="act">Active</button><button data-f="done">Done</button><button class="cc">Clear done</button></div></div>`,
+  init(el){
+    let items=[];try{items=JSON.parse(localStorage.getItem("webos-todo"))||[]}catch(e){}
+    let f="all";
+    const save=()=>{try{localStorage.setItem("webos-todo",JSON.stringify(items))}catch(e){}};
+    const inp=el.querySelector("input"),ls=el.querySelector(".ls"),cnt=el.querySelector(".cnt");
+    const draw=()=>{
+      ls.innerHTML="";
+      const shown=items.filter(t=>f==="all"||(f==="done"&&t.done)||(f==="act"&&!t.done));
+      if(!shown.length){const e=document.createElement("div");e.className="em";e.textContent=items.length?"Nothing here.":"No tasks yet. Add your first one above.";ls.appendChild(e)}
+      shown.forEach(t=>{
+        const row=document.createElement("div");row.className="it"+(t.done?" dn":"");
+        const cb=document.createElement("input");cb.type="checkbox";cb.checked=t.done;
+        cb.onchange=()=>{t.done=cb.checked;save();draw()};
+        const sp=document.createElement("span");sp.textContent=t.text;
+        const x=document.createElement("button");x.textContent="✕";
+        x.onclick=()=>{items=items.filter(i=>i!==t);save();draw()};
+        row.append(cb,sp,x);ls.appendChild(row);
+      });
+      cnt.textContent=items.filter(t=>!t.done).length+" left";
+    };
+    const add=()=>{const v=inp.value.trim();if(!v)return;items.unshift({text:v,done:false});inp.value="";save();draw()};
+    el.querySelector(".ad").onclick=add;
+    inp.onkeydown=e=>{if(e.key==="Enter")add()};
+    el.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{f=b.dataset.f;el.querySelectorAll("[data-f]").forEach(o=>o.classList.toggle("on",o===b));draw()});
+    el.querySelector(".cc").onclick=()=>{items=items.filter(t=>!t.done);save();draw()};
+    draw();
+  }};
+
 // ----- Lock screen -----
 let pin="1234";try{pin=localStorage.getItem("webos-pin")||pin}catch(e){}
 let entered="";
@@ -545,6 +736,7 @@ function openApp(id){
     <button class="min">–</button><button class="mx">▢</button><button class="x">✕</button></div>
     <div class="body">${a.render()}</div>`;
   desktop.appendChild(win);
+  if(a.max)win.classList.add("max");
   const btn=document.createElement("button");
   btn.className="tb"; btn.textContent=a.icon;
   btn.onclick=()=>{ const hidden=win.style.display==="none";
@@ -587,6 +779,9 @@ function focus(id){
 function closeStart(){startEl.classList.remove("open")}
 
 document.getElementById("startBtn").onclick=e=>{e.stopPropagation();startEl.classList.toggle("open")};
+["todo"].forEach(id=>{
+  try{ if(!localStorage.getItem("webos-seen-"+id)){ if(!installed.includes(id))installed.push(id); localStorage.setItem("webos-seen-"+id,"1"); localStorage.setItem("webos-apps",JSON.stringify(installed)) } }catch(e){}
+});
 renderLaunchers();
 let lp,sx=0,sy=0;
 desktop.oncontextmenu=e=>e.preventDefault();
